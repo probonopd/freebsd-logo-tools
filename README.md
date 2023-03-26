@@ -1,12 +1,11 @@
-# FreeBSD Boot Logo Converter
+# FreeBSD Boot Logo Tools
 
-Allows to edit the logo in [`sys/dev/vt/logo/logo_freebsd.c`](https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/logo/logo_freebsd.c) by converting it from and to a bitmap image that can be edited with any image editor.
+Allows to edit the FreeBSD boot logo in [`sys/dev/vt/logo/logo_freebsd.c`](https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/logo/logo_freebsd.c) by converting it from and to a bitmap image that can be edited with any image editor.
 
 ## Building
 
 ```sh
-clang logo2bmp.c -o logo2bmp
-clang bmp2logo.c -o bmp2logo
+make
 ```
 
 ## Usage
