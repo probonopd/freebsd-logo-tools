@@ -41,7 +41,7 @@ sudo mv /boot/kernel/kernel.modified /boot/kernel/kernel
 
 ## Notes
 
-It seems like the raw binary image is stored in `/boot/kernel/kernel` at an offset following the hex pattern `01 01 00 00  DB 00 00 00  01 00 00 00  00 00 00 00` (to be verified whether this is always the case). We can find the start of this hex pattern using
+It seems like the raw binary image is stored in `/boot/kernel/kernel` at an offset following the hex pattern `01 01 00 00  DB 00 00 00  01 00 00 00  00 00 00 00` (`01 01` corresponds to 257, `DB` to 219, and `01` to 1, which happen to be the image size and bit depth). We can find the start of this hex pattern using
 
 ```sh
 % binwalk -R  "\x01\x01\x00\x00\xDB\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00" /boot/kernel/kernel
