@@ -1,6 +1,6 @@
 # FreeBSD Boot Logo Tools
 
-`logo2bmp` allows to edit the FreeBSD boot logo in [`sys/dev/vt/logo/logo_freebsd.c`](https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/logo/logo_freebsd.c) by converting it to a bitmap image that can be edited with any image editor. `bmp2logo` converts the bitmap back to C source code.
+`logo2bmp` allows to edit the FreeBSD boot logo in [`sys/dev/vt/logo/logo_freebsd.c`](https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/logo/logo_freebsd.c) by converting it to a bitmap image that can be edited with any image editor. `bmp2logo` converts the bitmap back to C source code. `logo2kernel` is a binary patcher that creates a file `kernel.modified` containing the edited boot logo image.
 
 ## Building
 
