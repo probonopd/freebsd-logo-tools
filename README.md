@@ -11,9 +11,10 @@ make
 ## Usage
 
 ```sh
+cd /tmp
 fetch "https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/logo/logo_freebsd.c"
 ./logo2bmp
-# edit logo.bmp
+# Edit logo.bmp
 ./bmp2logo
 diff logo_freebsd.c logo_modified.c # No difference if logo.bmp was not modified
 ./logo2kernel
