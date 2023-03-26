@@ -1,0 +1,43 @@
+.TH LOGO2BMP 1 "March 2023" "FreeBSD Logo Tools Manual"
+
+.SH NAME
+logo2kernel - Patches a FreeBSD kernel with a raw binary file containg a boot image.
+
+.SH SYNOPSIS
+.B logo2kernel
+
+.SH DESCRIPTION
+The
+.B logo2kernel
+command patches a FreeBSD kernel with a raw binary file containg a boot image of the same size.
+
+The output file is the file "kernel.modified". If the output file already exists, it will be overwritten.
+
+.SH OPTIONS
+This command has no options.
+
+.SH EXAMPLES
+To create a FreeBSD kernel file "kernel.modified" from /boot/kernel/kernel using the raw binary file containg a boot image "logo.bin", use the following command:
+
+.B logo2kernel
+
+This will create a new FreeBSD kernel file called "kernel.modified" in the current directory.
+
+.B sudo cp kernel.modified /boot/kernel/
+
+This will copy the modified FreeBSD kernel file to the default FreeBSD kernel directory.
+
+To boot once manually with the modified logo without changing the default boot loader entry, you can use the following command at the FreeBSD boot loader prompt:
+
+unload
+set bootfile="kernel.modified"
+boot-conf
+
+.SH SEE ALSO
+.BR freebsd-logo (4)
+
+.SH AUTHOR
+This manual page was written by Simon Peter <probono@puredarwin.org> for the FreeBSD project.
+
+.SH BUGS
+None known at this time. If you find any bugs, please report them to the FreeBSD project.

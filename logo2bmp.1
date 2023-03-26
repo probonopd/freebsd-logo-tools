@@ -1,0 +1,36 @@
+.TH LOGO2BMP 1 "March 2023" "FreeBSD Logo Tools Manual"
+
+.SH NAME
+logo2bmp - Converts a "logo_freebsd.c" source code file into a BMP file.
+
+.SH SYNOPSIS
+.B logo2bmp
+
+.SH DESCRIPTION
+The
+.B logo2bmp
+command converts a FreeBSD boot image file "logo_freebsd.c" into a raw binary file and a BMP file. This is useful for editing the boot image using a bitmap editor that can edit the BMP file format.
+
+The input file is the file "logo_freebsd.c" in the current directory.
+It must be in the format used in the FreeBSD source code.
+
+The output files are the files "logo.bin" and "logo.bmp" in the current working directory. If the output files already exist, they will be overwritten.
+
+.SH OPTIONS
+This command has no options.
+
+.SH EXAMPLES
+To convert a FreeBSD boot image file "logo_freebsd.c" into a raw binary file called "logo.bin" and a BMP file called "logo.bmp", use the following command:
+
+.B logo2bmp
+
+This will create a new raw binary file called "logo.bin" and a new BMP file called "logo.bmp" in the current directory.
+
+.SH SEE ALSO
+.BR freebsd-logo (4)
+
+.SH AUTHOR
+This manual page was written by Simon Peter <probono@puredarwin.org> for the FreeBSD project.
+
+.SH BUGS
+None known at this time. If you find any bugs, please report them to the FreeBSD project.
