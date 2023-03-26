@@ -16,6 +16,26 @@ fetch "https://raw.githubusercontent.com/freebsd/freebsd-src/main/sys/dev/vt/log
 # edit logo.bmp
 ./bmp2logo
 diff logo_freebsd.c logo_modified.c # No difference if logo.bmp was not modified
+./logo2kernel
+# Copy kernel to /boot/kernel/kernel.modified
+sudo cp kernel.modified /boot/kernel/
+```
+
+To boot once manually with the modified logo without changing the default boot loader entry, you can use the following command at the FreeBSD boot loader prompt:
+
+```
+unload
+set bootfile="kernel.modified"
+boot-conf
+```
+
+In helloSystem, you can get to the FreeBSD boot loader prompt by pressing the Backspace key as soon as the screen turns gray, and then pressing the escape key.
+
+Once you are satisfied with the modified kernel, you can make it the default by running the following command:
+
+```sh
+sudo cp /boot/kernel/kernel /boot/kernel/kernel.original
+sudo mv /boot/kernel/kernel.modified /boot/kernel/kernel
 ```
 
 ## Notes
