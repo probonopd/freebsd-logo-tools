@@ -4,7 +4,7 @@
  * Copyright (c) 2023 The FreeBSD Foundation
  *
  * This software was developed by Simon Peter
- * based on research by Jesper Schmitz Mouridsen.
+ * and Jesper Schmitz Mouridsen.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,37 +28,63 @@
  * SUCH DAMAGE.
  */
 
-#include <stdint.h>
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+unsigned int vt_logo_width;
+unsigned int vt_logo_height;
+unsigned int vt_logo_depth=1;
+unsigned char bmp_header[] =	{
+0x42,0x4D,0x52,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3E,0x00,0x00,0x00,0x28,0x00,0x00,0x00,0x05,0x00,0x00,0x00,0x05,0x00,0x00,0x00,0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff,0xff,0xff,0x00
+	};
+unsigned char zero[] = {0x0,0x0,0x0,0x0};
+unsigned char* logo_data;
+char buffer[1024];
+int logo_size;
+int main(int argc,char** argv) {
+FILE *input_file;
+char* file_path = (char*)malloc(4096);
+int opt = 0;
+while((opt = getopt(argc, argv, "s:f:")) != -1)
+  {
+    switch(opt)
+      {
+      case 's': {
+	printf("size: %s\n", optarg);
+	char *size = strtok(optarg,"x");
+	sscanf(size,"%ud",&vt_logo_width);
+	sscanf(strtok(NULL,"x"),"%ud",&vt_logo_height);
+	printf("width: %d \n", vt_logo_width);
+	printf("height: %d \n", vt_logo_height);
+	break;
+      }
+      case 'f':
+	strcpy(file_path,optarg);
+	break;
+      case ':':
+	printf("option needs a value\n");
+	break;
+      case '?':
+	printf("unknown option: %c\n", optopt);
+	break;
+      }
+  }
+if(!vt_logo_width || !vt_logo_height) {
+printf("specify size e.g -s 257x219\n");
+exit(1);
+}
+if(!*file_path) {
+printf("specify input file (src format,not binary, e.g -f /usr/src/sys/dev/vt/logo/logo_freebsd.c\n"); 
+exit(1);
 
-#define INPUT_FILE "logo_freebsd.c"
-#define OUTPUT_FILE "logo.bin"
-#define BMP_FILE "logo.bmp"
-
-int
-main(void)
-{
-	FILE *input_file, *output_file;
-	char buffer[1024];
-	int logo_size;
-	uint8_t *logo_data;
-
-	char cmd[256];
-	char buf[256];
-	int ret;
-
-	// Check if the "convert" command is available
-	ret = system("command -v convert >/dev/null");
-	if (ret != 0) {
-		fprintf(stderr,
-		    "Error: The 'convert' command is not available.\n");
-		return 1;
-	}
-
-	// Open the input file
-	input_file = fopen(INPUT_FILE, "r");
+}
+// Open the input file
+	input_file = fopen(file_path, "r");
 	if (!input_file) {
 		fprintf(stderr, "Failed to open input file\n");
 		return 1;
@@ -103,32 +129,33 @@ main(void)
 	// Close the input file
 	fclose(input_file);
 
-	// Write the binary data to a file
-	output_file = fopen(OUTPUT_FILE, "wb");
-	if (!output_file) {
-		fprintf(stderr, "Failed to open output file\n");
-		free(logo_data);
-		return 1;
+
+int width,height;
+width =vt_logo_width;
+height= vt_logo_height;
+int f = open("/tmp/t2.bmp",O_WRONLY|O_CREAT,0666);
+write(f,&bmp_header,sizeof(bmp_header));
+int bytes,padding, bpl, xi, yi;
+unsigned int size;
+size=0;
+bpl = (width + 7) / 8;
+bytes = width * height /8;
+for(yi=height-1;yi>=0;yi--) {
+for(xi=0;xi<bpl;xi++) {
+	size++;
+	write(f,&logo_data[yi*bpl+xi],1);
 	}
-	fwrite(logo_data, logo_size, 1, output_file);
-	fclose(output_file);
-
-	// Clean up
-	free(logo_data);
-
-	printf("Logo saved to %s\n", OUTPUT_FILE);
-
-	// Convert the binary data to a bmp file
-	snprintf(cmd, sizeof(cmd), "convert -size 257x219 -depth 1 gray:%s %s",
-	    OUTPUT_FILE, BMP_FILE);
-	ret = system(cmd);
-	if (ret != 0) {
-		fprintf(stderr,
-		    "Error: Failed to execute the 'convert' command.\n");
-		return 1;
-	}
-
-	printf("Logo saved to %s\n", BMP_FILE);
-
-	return 0;
+	int padding = (xi % 4 == 0) ? 0 : 4-xi % 4;
+	size+=padding;
+	write(f,zero,padding);
+}
+size+=sizeof(bmp_header);
+lseek(f,2,SEEK_SET);
+write(f,&size,4);
+lseek(f,0x12,SEEK_SET);
+write(f,&width,4);
+lseek(f,0x16,SEEK_SET);
+write(f,&height,4);
+printf("Wrote bmp to /tmp/t2.bmp\n");
+close(f);
 }

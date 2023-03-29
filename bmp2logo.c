@@ -28,123 +28,68 @@
  * SUCH DAMAGE.
  */
 
-#include <stdint.h>
+
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
+int main(int argc,char** argv) {
+int width,height;
+int f = open("/tmp/t2.bmp",O_RDONLY);
+unsigned int filesize,byte;
+byte=0;
+unsigned int bitmapoffset;
+unsigned char * vt_logo_image;
+vt_logo_image = (unsigned char*)malloc(257*219*8+3*219);
+unsigned char* vt_logo_raw = (unsigned char*)malloc(257*219*8);
+read(f,vt_logo_image,54);
 
-#define INPUT_FILE "logo.bin"
-#define OUTPUT_FILE "logo_modified.c"
-#define BMP_FILE "logo.bmp"
-#define ORIGINAL_FILE "logo_freebsd.c"
+lseek(f,0x2,SEEK_SET);
+read(f,&filesize,4);
+lseek(f,0x12,SEEK_SET);
+read(f,&width,4);
+lseek(f,0x16,SEEK_SET);
+read(f,&height,4);
+lseek(f,0x0a,SEEK_SET);
+read(f,&bitmapoffset,4);
+int bytes,padding, bpl, xi, yi;
+int i,offset;
+offset=0;
+i=0;
+int size=0;
+bpl = (width + 7) / 8;
+unsigned int  usedbytes[7300];
+lseek(f,bitmapoffset,SEEK_SET);
+read(f,vt_logo_image,filesize-bitmapoffset);
+close(f);
+bytes = filesize-bitmapoffset;
+int out = open("/tmp/t2.raw",O_WRONLY|O_CREAT,0666);
+bpl = (width + 7) / 8;
+for(yi=0;yi<height;yi++) {
+for(xi=0;xi<bpl;xi++) {
+i+=write(out,&vt_logo_image[offset],1);
+offset++;
 
-int
-main(void)
-{
-	FILE *input_file, *output_file;
-	uint8_t *logo_data;
-	size_t logo_size;
-
-	char cmd[256];
-	char buf[256];
-	int ret;
-
-	// Check if the "convert" command is available
-	ret = system("command -v convert >/dev/null");
-	if (ret != 0) {
-		fprintf(stderr,
-		    "Error: The 'convert' command is not available.\n");
-		return 1;
-	}
-
-	// Convert the BMP image to a raw image with a bit depth
-	// of 1
-	snprintf(cmd, sizeof(cmd), "convert %s -depth 1 gray:%s", BMP_FILE,
-	    INPUT_FILE);
-	ret = system(cmd);
-	if (ret != 0) {
-		fprintf(stderr,
-		    "Error: Failed to execute the 'convert' command.\n");
-		return 1;
-	}
-
-	// Open the input file
-	input_file = fopen(INPUT_FILE, "rb");
-	if (!input_file) {
-		fprintf(stderr, "Failed to open input file\n");
-		return 1;
-	}
-
-	// Get the size of the input file
-	fseek(input_file, 0, SEEK_END);
-	logo_size = ftell(input_file);
-	fseek(input_file, 0, SEEK_SET);
-
-	// Allocate memory for the logo data
-	logo_data = malloc(logo_size);
-	if (!logo_data) {
-		fprintf(stderr, "Failed to allocate memory for logo data\n");
-		fclose(input_file);
-		return 1;
-	}
-
-	// Read the binary data from the input file
-	fread(logo_data, logo_size, 1, input_file);
-
-	// Close the input file
-	fclose(input_file);
-
-	// Open the output file
-	output_file = fopen(OUTPUT_FILE, "w");
-	if (!output_file) {
-		fprintf(stderr, "Failed to open output file\n");
-		free(logo_data);
-		return 1;
-	}
-
-	// Write the content of the ORIGINAL_FILE
-	// to the output file, up to the line
-	// "unsigned char vt_logo_image[] = {"
-	FILE *original_file = fopen(ORIGINAL_FILE, "r");
-	if (!original_file) {
-		fprintf(stderr, "Failed to open original file\n");
-		free(logo_data);
-		fclose(output_file);
-		return 1;
-	}
-	while (fgets(buf, sizeof(buf), original_file)) {
-		if (strstr(buf, "unsigned char vt_logo_image[] = {")) {
-			break;
-		}
-		fprintf(output_file, "%s", buf);
-	}
-	fclose(original_file);
-
-	// Write the logo data in the original format to the output file
-	fprintf(output_file, "unsigned char vt_logo_image[] = {\n\t");
-	for (size_t i = 0; i < logo_size; i++) {
-		fprintf(output_file, "0x%02x", logo_data[i]);
-		if (i < logo_size - 1) {
-			fprintf(output_file, ",");
-		}
-		if ((i + 1) % 12 == 0) {
-			fprintf(output_file, "\n\t");
-		} else {
-			fprintf(output_file, " ");
-		}
-	}
-	// (to remove the last comma)
-	fseek(output_file, -1, SEEK_END);
-	// Remove the last character (blank)
-	ftruncate(fileno(output_file), ftell(output_file));
-	fprintf(output_file, ",\n};\n");
-
-	// Close the output file
-	fclose(output_file);
-
-	// Clean up
-	free(logo_data);
-
-	printf("Logo array saved to %s\n", OUTPUT_FILE);
-	return 0;
+}
+offset+=(xi % 4 ==0) ? 0 : 4-xi%4;
+}
+close(out);
+int in = open("/tmp/t2.raw",O_RDONLY);
+read(in,vt_logo_raw,height*width*8);
+for(yi=height-1;yi>=0;yi--) {
+for(xi=0;xi<bpl;xi++) {
+if(size==0)
+	printf("\t");
+printf("0x%.2x,",vt_logo_raw[yi*bpl+xi]);
+size++;
+if(size % 12==0){
+	printf("\n\t");
+}else if(size<height*bpl) {
+printf(" ");
+}
+}
+}
+close(in);
 }
